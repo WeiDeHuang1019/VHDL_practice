@@ -14,39 +14,29 @@ end counter0to9;
 
 architecture Behavioral of counter0to9 is
     constant MAX_COUNT : integer := 33330000;
-    signal counter     : integer range 0 to MAX_COUNT := 0;
-    signal slowClk     : STD_LOGIC := '0';
+    
     signal cntUp       : STD_LOGIC_VECTOR (3 downto 0) := "0000";
     signal cntDown     : STD_LOGIC_VECTOR (3 downto 0) := "1001";
+
+    -- 除頻訊號
+    signal counter     : STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
+    signal slowClk     : STD_LOGIC := '0';
 begin
 
-    -- Process 1: 控制 slowClk的counter
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            counter <= 0;
-        elsif rising_edge(i_clk) then
-            if counter = MAX_COUNT then
-                counter <= 0;
-            else
-                counter <= counter + 1;
-            end if;
-        end if;
-    end process;
+    -- Process 1: 除頻器clock_devider (Bit-Slice Divider)
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            counter <= (others => '0');
+        elsif rising_edge(clk) then
+            counter <= counter + 1;
+        end if;
+    end process;   
 
-    -- Process 2: 控制 slowClk
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            slowClk <= '0';
-        elsif rising_edge(i_clk) then
-            if counter = MAX_COUNT then
-                slowClk <= not slowClk;
-            end if;
-        end if;
-    end process;
+    -- 取第 23 位作為除頻輸出（除以 2e24）
+    slowClk <= counter(23);
 
-    -- Process 3: 控制 cntUp
+    -- Process 2: 上數計數器counterUp
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
@@ -60,7 +50,7 @@ begin
         end if;
     end process;
 
-    -- Process 4: 控制 cntDown
+    -- Process 3: 下數計數器counterDn
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
