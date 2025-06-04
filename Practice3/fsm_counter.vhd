@@ -18,16 +18,16 @@ architecture Behavioral of fsm_counter is
     type STATE_TYPE is (CNT_UP, CNT_DN);
 	constant c_max   : STD_LOGIC_VECTOR(3 downto 0) := "1000"; 
 	constant c_min   : STD_LOGIC_VECTOR(3 downto 0) := "0001"; 
-    constant MAX_COUNT : integer := 33330000;
+
     signal   STATE   : STATE_TYPE := CNT_UP;
     signal   cntUp   : STD_LOGIC_VECTOR(3 downto 0) := "0000";
     signal   cntDn   : STD_LOGIC_VECTOR(3 downto 0) := "0000";
 	signal   slowClk : STD_LOGIC := '0';
-    signal   counter : integer range 0 to MAX_COUNT := 0;	
+    signal   counter : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
 begin
 	
-	-- process1: FSM邏輯
+	-- process1: FSM
 	process(i_clk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -50,33 +50,17 @@ begin
 		end if;
 	end process;
 
-    -- Process2: 控制 slowClk的counter
+    -- Process 2: Clock_divider
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
-            counter <= 0;
+            counter <= (others => '0');
         elsif rising_edge(i_clk) then
-            if counter = MAX_COUNT then
-                counter <= 0;
-            else
-                counter <= counter + 1;
-            end if;
-        end if;
-    end process;
-
-    -- Process3: 控制 slowClk
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            slowClk <= '0';
-        elsif rising_edge(i_clk) then
-            if counter = MAX_COUNT then
-                slowClk <= not slowClk;
-            end if;
+            counter <= counter + 1;
         end if;
     end process;
 	
-	-- process4: 上數計數
+	-- process 3: counterUp
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -90,7 +74,7 @@ begin
 		end if;
 	end process;
 	
-	-- process5: 下數計數
+	-- process 4: counterDn
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then

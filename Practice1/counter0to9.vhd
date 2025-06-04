@@ -19,7 +19,7 @@ architecture Behavioral of counter0to9 is
     signal cntDown     : STD_LOGIC_VECTOR (3 downto 0) := "1001";
 begin
 
-    -- Clock divider
+    -- Process 1: Clock_divider
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -31,7 +31,7 @@ begin
 
     slowClk <= counter(25);
 
-    -- Process 3: 控制 cntUp
+    -- Process 2: counterUp
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
@@ -45,7 +45,7 @@ begin
         end if;
     end process;
 
-    -- Process 4: 控制 cntDown
+    -- Process 3: counterDn
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
