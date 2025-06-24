@@ -59,6 +59,8 @@ begin
             counter <= counter + 1;
         end if;
     end process;
+
+	slowClk <= counter(25);
 	
 	-- process 3: counterUp
 	process(slowClk, i_rst)

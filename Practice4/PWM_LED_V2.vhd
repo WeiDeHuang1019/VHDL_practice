@@ -22,7 +22,7 @@ architecture Behavioral of PWM_LED is
 
     signal cnt1, cnt2    : UNSIGNED(7 downto 0) := (others => '0');
     signal clk_cnt       : STD_LOGIC := '0';
-    signal clk_5s        : STD_LOGIC := '0';
+    signal clk_pwm        : STD_LOGIC := '0';
     signal counter       : UNSIGNED(31 downto 0) := (others => '0');
 
 begin
