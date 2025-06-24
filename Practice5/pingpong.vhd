@@ -70,7 +70,7 @@ begin
         end if;
     end process;
 
-    slowClk <= counter(25);
+    slowClk <= counter(24);
     --slowClk <= counter(1);    --for simulation
 
     -- LED Counter
