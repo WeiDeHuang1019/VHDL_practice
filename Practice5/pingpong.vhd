@@ -33,7 +33,7 @@ begin
         elsif rising_edge(i_clk) then
             case STATE is
                 when IDLE =>
-                    if i_btn1 = '1' then
+                    if (i_btn1 = '1' AND cntLED = "0100000000") then
                         STATE <= RIGHT_SHIFT;
                     else
                         STATE <= IDLE;
