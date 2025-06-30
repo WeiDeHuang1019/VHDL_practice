@@ -25,7 +25,7 @@ architecture Behavioral of pingpong is
     signal counter   : STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
 begin
 
-    -- FSM Process
+    --Process FSM
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -60,7 +60,7 @@ begin
         end if;
     end process;
 
-    -- Clock Divider
+    --Process clockDivider
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -70,9 +70,10 @@ begin
         end if;
     end process;
 
-    slowClk <= counter(4);  -- 模擬用較快的 slowClk
+    slowClk <= counter(23);   
+    --slowClk <= counter(4);  -- for simulation 
 
-    -- LED Counter
+    --Process counterLED 
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
@@ -94,7 +95,7 @@ begin
         end if;
     end process;
 
-    -- Point Counter
+    --Process counterPoint 
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -109,7 +110,7 @@ begin
         end if;
     end process;
 
-    -- Timer
+    --Process timer
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
@@ -123,7 +124,7 @@ begin
         end if;
     end process;
 
-    -- Fail Detection
+    --Process failDetect
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
