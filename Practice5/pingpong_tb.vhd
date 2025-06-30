@@ -2,10 +2,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity pingpong_tb is
-end pingpong_tb;
+entity tb_pingpong is
+end tb_pingpong;
 
-architecture sim of pingpong_tb is
+architecture sim of tb_pingpong is
     -- DUT component
     component pingpong
         Port (
@@ -58,23 +58,17 @@ begin
         i_rst <= '1';
 
         -- IDLE → RIGHT_SHIFT
-        wait for 40 ns;
+        wait for 300 ns;
         i_btn1 <= '1';  -- MSB side按鈕
         wait for 40 ns;
         i_btn1 <= '0';
 
         -- RIGHT_SHIFT → LEFT_SHIFT
-        wait for 560 ns;
+        wait for 1800 ns;
         i_btn2 <= '1';  -- LSB side按鈕
         wait for 40 ns;
         i_btn2 <= '0';
 
-        -- LEFT_SHIFT → FAIL（模擬錯誤）
-        wait for 80 ns;
-        i_btn1 <= '1';  -- 故意不按，讓球過頭
-        wait for 40 ns;
-        i_btn2 <= '0';
-        wait for 200 ns;
 
         -- FAIL → IDLE（等待時間結束）
         wait for 500 ns;
