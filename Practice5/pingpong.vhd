@@ -1,13 +1,13 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity pingpong is
     Port (
         i_clk   : in  STD_LOGIC;
         i_rst   : in  STD_LOGIC;
-        i_btn1  : in  STD_LOGIC;   -- MSB Side's btn 高位元方按鈕
-        i_btn2  : in  STD_LOGIC;   -- LSB Side's btn 低位元方按鈕
+        i_btn1  : in  STD_LOGIC;
+        i_btn2  : in  STD_LOGIC;
         o_LED   : out STD_LOGIC_VECTOR(7 downto 0)
     );
 end pingpong;
@@ -16,13 +16,13 @@ architecture Behavioral of pingpong is
     type STATE_TYPE is (IDLE, RIGHT_SHIFT, LEFT_SHIFT, FAIL);
 
     signal STATE     : STATE_TYPE := IDLE;
-    signal cntLED    : unsigned(9 downto 0) := (others => '0');
-    signal cntTime   : unsigned(3 downto 0) := (others => '0');
-    signal cntPoint1 : unsigned(3 downto 0) := (others => '0');
-    signal cntPoint2 : unsigned(3 downto 0) := (others => '0');
+    signal cntLED    : STD_LOGIC_VECTOR(9 downto 0) := (others => '0');
+    signal cntTime   : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
+    signal cntPoint1 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
+    signal cntPoint2 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
     signal failSig   : STD_LOGIC := '0';
     signal slowClk   : STD_LOGIC := '0';
-    signal counter   : unsigned(31 downto 0) := (others => '0');
+    signal counter   : STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
 begin
 
     -- FSM Process
@@ -70,8 +70,7 @@ begin
         end if;
     end process;
 
-    slowClk <= counter(24);
-    --slowClk <= counter(1);    --for simulation
+    slowClk <= counter(4);  -- 模擬用較快的 slowClk
 
     -- LED Counter
     process(slowClk, i_rst)
@@ -83,9 +82,9 @@ begin
                 when IDLE =>
                     cntLED <= "0100000000";
                 when RIGHT_SHIFT =>
-                    cntLED <= shift_right(cntLED, 1);
+                    cntLED <= '0' & cntLED(9 downto 1);  -- 手動右移
                 when LEFT_SHIFT =>
-                    cntLED <= shift_left(cntLED, 1);
+                    cntLED <= cntLED(8 downto 0) & '0';  -- 手動左移
                 when FAIL =>
                     cntLED(8 downto 5) <= cntPoint1;
                     cntLED(4 downto 1) <= cntPoint2;
@@ -116,11 +115,7 @@ begin
         if i_rst = '0' then
             cntTime <= (others => '0');
         elsif rising_edge(slowClk) then
-            if STATE = IDLE then
-                cntTime <= (others => '0');
-			elsif STATE = RIGHT_SHIFT then
-                cntTime <= (others => '0');
-			elsif STATE = LEFT_SHIFT then
+            if STATE = IDLE or STATE = RIGHT_SHIFT or STATE = LEFT_SHIFT then
                 cntTime <= (others => '0');
             elsif STATE = FAIL then
                 cntTime <= cntTime + 1;
@@ -149,6 +144,6 @@ begin
     end process;
 
     -- LED Output
-    o_LED <= std_logic_vector(cntLED(8 downto 1));
+    o_LED <= cntLED(8 downto 1);
 
 end Behavioral;
