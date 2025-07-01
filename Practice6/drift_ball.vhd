@@ -32,7 +32,7 @@ architecture Behavioral of drift_ball is
 
 begin
 
-    -- 除頻器產生 slowClk 與 cntClk
+    --process: clockDivider
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -56,9 +56,7 @@ begin
                counter_clk(10) when others; */
 	------------------------------------------
 
-    ----------------------------------------------------------------
-    -- 1. FSM_LED：根據目前 LED 位置，改變 LED_STATE（不控制 LED）
-    ----------------------------------------------------------------
+    --process: FSM_LED
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -77,9 +75,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------
-    -- 2. FSM_SPEED：三角波變速切換（兩段速度）
-    ----------------------------------------------------------------
+    --process: FSM_SPEED
     process(cntClk, i_rst)
     begin
         if i_rst = '0' then
@@ -95,9 +91,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------
-    -- 3. counter_speed：控制變速切換的 delay 計數
-    ----------------------------------------------------------------
+    --process: counterSpeed
     process(cntClk, i_rst)
     begin
         if i_rst = '0' then
@@ -111,9 +105,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------
-    -- 4. LED pattern 控制（用 slowClk 控制，依 LED_STATE 移動）
-    ----------------------------------------------------------------
+    --process: counterLED
     process(slowClk, i_rst)
     begin
         if i_rst = '0' then
@@ -128,9 +120,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------
-    -- LED 輸出
-    ----------------------------------------------------------------
+    -- LED output
     o_led <= led_reg;
 
 end Behavioral;
