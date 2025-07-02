@@ -23,9 +23,9 @@ architecture Behavioral of drift_ball is
     -- LED pattern
     signal led_reg : STD_LOGIC_VECTOR(7 downto 0) := "00000001";
 
-    -- 除頻器與 slowClk
+    -- 除頻器與 ledClk
     signal counter_clk : STD_LOGIC_VECTOR(24 downto 0) := (others => '0');
-    signal slowClk, cntClk : STD_LOGIC;
+    signal ledClk, cntClk : STD_LOGIC;
 
     -- 切換速度的計數器
     signal counter_speed : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
@@ -44,14 +44,14 @@ begin
 
     cntClk  <= counter_clk(24);
     with SPEED_STATE select
-    slowClk <= counter_clk(21) when SPEED_FAST,
+    ledClk <= counter_clk(21) when SPEED_FAST,
                counter_clk(24) when SPEED_SLOW,
                counter_clk(24) when others;
     
 	--for simulation--------------------------
 -- 	cntClk  <= counter_clk(12);  -- 每約 40 us
 --    with SPEED_STATE select
---    slowClk <= counter_clk(8)  when SPEED_FAST,
+--    ledClk <= counter_clk(8)  when SPEED_FAST,
 --               counter_clk(10) when SPEED_SLOW,
 --               counter_clk(10) when others; 
 	------------------------------------------
@@ -106,11 +106,11 @@ begin
     end process;
 
     --process: counterLED
-    process(slowClk, i_rst)
+    process(ledClk, i_rst)
     begin
         if i_rst = '0' then
             led_reg <= "10000000";
-        elsif rising_edge(slowClk) then
+        elsif rising_edge(ledClk) then
             case LED_STATE is
                 when RIGHT_SHIFT =>
                     led_reg <= '0' & led_reg(7 downto 1);
