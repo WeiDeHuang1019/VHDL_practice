@@ -105,7 +105,7 @@ begin
         end if;
     end process;
 
-    --process: counterLED
+    --process: LEDpattern
     process(ledClk, i_rst)
     begin
         if i_rst = '0' then
