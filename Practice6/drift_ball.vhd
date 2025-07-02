@@ -49,11 +49,11 @@ begin
                counter_clk(24) when others;
     
 	--for simulation--------------------------
-/* 	cntClk  <= counter_clk(12);  -- 每約 40 us
-    with SPEED_STATE select
-    slowClk <= counter_clk(8)  when SPEED_FAST,
-               counter_clk(10) when SPEED_SLOW,
-               counter_clk(10) when others; */
+-- 	cntClk  <= counter_clk(12);  -- 每約 40 us
+--    with SPEED_STATE select
+--    slowClk <= counter_clk(8)  when SPEED_FAST,
+--               counter_clk(10) when SPEED_SLOW,
+--               counter_clk(10) when others; 
 	------------------------------------------
 
     --process: FSM_LED
