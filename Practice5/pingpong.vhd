@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity pingpong_speed is
+entity pingpong is
     Port (
         i_clk   : in  STD_LOGIC;
         i_rst   : in  STD_LOGIC;
@@ -10,9 +10,9 @@ entity pingpong_speed is
         i_btn2  : in  STD_LOGIC;
         o_led   : out STD_LOGIC_VECTOR(7 downto 0)
     );
-end pingpong_speed;
+end pingpong;
 
-architecture Behavioral of pingpong_speed is
+architecture Behavioral of pingpong is
 
     type STATE_TYPE is (IDLE, RIGHT_SHIFT, LEFT_SHIFT, FAIL);
 
