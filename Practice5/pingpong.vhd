@@ -16,16 +16,16 @@ architecture Behavioral of pingpong_speed is
 
     type STATE_TYPE is (IDLE, RIGHT_SHIFT, LEFT_SHIFT, FAIL);
 
-    signal STATE     : STATE_TYPE := IDLE;
+    signal STATE         : STATE_TYPE ;
+    signal PRE_STATE     : STATE_TYPE ;
 
-    signal shift_reg   : STD_LOGIC_VECTOR(9 downto 0) := "0100000000";  
-    signal counter   : STD_LOGIC_VECTOR(25 downto 0) := (others => '0');
-    signal lfsr      : STD_LOGIC_VECTOR(7 downto 0) := "00000001";
-    signal cntTime   : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
-    signal cntPoint1 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
-    signal cntPoint2 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
+    signal shift_reg     : STD_LOGIC_VECTOR(9 downto 0);  
+    signal counter       : STD_LOGIC_VECTOR(25 downto 0);
+    signal cntTime       : STD_LOGIC_VECTOR(3 downto 0);
+    signal cntPoint1     : STD_LOGIC_VECTOR(3 downto 0);
+    signal cntPoint2     : STD_LOGIC_VECTOR(3 downto 0);
 
-    signal slowClk    : STD_LOGIC := '0';   
+    signal slowClk       : STD_LOGIC ;   
 
 
 begin
@@ -37,9 +37,11 @@ begin
             counter <= (others => '0');
         elsif rising_edge(i_clk) then
             counter <= counter + 1;
-            slowClk <= counter(23);
+        else
+            counter <= counter;     
         end if;
     end process;
+    slowClk <= counter(23);
 
     --process FSM
     process(i_clk, i_rst)
@@ -47,10 +49,13 @@ begin
         if i_rst = '0' then
             STATE <= IDLE;
         elsif rising_edge(i_clk) then
+            PRE_STATE <= STATE;
             case STATE is
                 when IDLE =>
                     if (i_btn1 = '1' and shift_reg = "0100000000") then
                         STATE <= RIGHT_SHIFT;
+                    else
+                        STATE <= IDLE;
                     end if;
                 when RIGHT_SHIFT =>
                     if shift_reg = "0000000001" then
@@ -59,6 +64,8 @@ begin
                         STATE <= LEFT_SHIFT;
                     elsif (i_btn2 = '1' and shift_reg /= "0000000010") then
                         STATE <= FAIL;
+                    else
+                        STATE <= RIGHT_SHIFT;
                     end if;
                 when LEFT_SHIFT =>
                     if shift_reg = "1000000000" then
@@ -67,10 +74,14 @@ begin
                         STATE <= RIGHT_SHIFT;
                     elsif (i_btn1 = '1' and shift_reg /= "0100000000") then
                         STATE <= FAIL;
+                    else
+                        STATE <= LEFT_SHIFT;
                     end if;
                 when FAIL =>
                     if cntTime = "0111" then
                         STATE <= IDLE;
+                    else
+                        STATE <= FAIL;
                     end if;
             end case;
         end if;
@@ -89,8 +100,8 @@ begin
                     shift_reg <= '0' & shift_reg(9 downto 1);
                 when LEFT_SHIFT =>
                     shift_reg <= shift_reg(8 downto 0) & '0';
-                when others =>
-                    null; 
+                when FAIL =>
+                    shift_reg <= shift_reg; 
             end case;
         end if;
     end process;
@@ -139,11 +150,13 @@ begin
                 when RIGHT_SHIFT =>
                     if shift_reg = "0000000001" then
                         cntPoint1 <= cntPoint1 + 1;
-                    elsif (i_btn2 = '1' and shift_reg /= "0000000010") then
+                    elsif (STATE = FAIL and PRE_STATE = RIGHT_SHIFT) then
                         cntPoint1 <= cntPoint1 + 1;
+                    else
+                        cntPoint1 <= cntPoint1;
                     end if;
                 when others =>
-                    null;   
+                    cntPoint1 <= cntPoint1;   
             end case;
         end if;
     end process;
@@ -158,11 +171,13 @@ begin
                 when LEFT_SHIFT =>
                     if shift_reg = "1000000000" then
                         cntPoint2 <= cntPoint2 + 1;
-                    elsif (i_btn1 = '1' and shift_reg /= "0100000000") then
+                    elsif (STATE = FAIL and PRE_STATE = LEFT_SHIFT) then
                         cntPoint2 <= cntPoint2 + 1;
+                    else
+                        cntPoint2 <= cntPoint2;
                     end if;
                 when others =>
-                    null;   
+                    cntPoint2 <= cntPoint2;   
             end case;
         end if;
     end process;

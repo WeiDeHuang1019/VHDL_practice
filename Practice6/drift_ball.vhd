@@ -17,16 +17,17 @@ architecture Behavioral of pingpong_speed is
     type STATE_TYPE is (IDLE, RIGHT_SHIFT, LEFT_SHIFT, FAIL);
 
     signal STATE     : STATE_TYPE := IDLE;
+    signal PRE_STATE     : STATE_TYPE ;
 
-    signal shift_reg   : STD_LOGIC_VECTOR(9 downto 0) := "0100000000";  
-    signal counter   : STD_LOGIC_VECTOR(25 downto 0) := (others => '0');
-    signal lfsr      : STD_LOGIC_VECTOR(7 downto 0) := "00000001";
-    signal cntTime   : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
-    signal cntPoint1 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
-    signal cntPoint2 : STD_LOGIC_VECTOR(3 downto 0) := (others => '0');
+    signal shift_reg   : STD_LOGIC_VECTOR(9 downto 0);  
+    signal counter   : STD_LOGIC_VECTOR(25 downto 0);
+    signal lfsr      : STD_LOGIC_VECTOR(7 downto 0);
+    signal cntTime   : STD_LOGIC_VECTOR(3 downto 0);
+    signal cntPoint1 : STD_LOGIC_VECTOR(3 downto 0);
+    signal cntPoint2 : STD_LOGIC_VECTOR(3 downto 0);
 
-    signal ledClk    : STD_LOGIC := '0';    -- LEDpattern觸發訊號
-    signal cntClk    : STD_LOGIC := '0';    -- LFSR_random、timer觸發訊號
+    signal ledClk    : STD_LOGIC;    -- LEDpattern觸發訊號
+    signal cntClk    : STD_LOGIC;    -- LFSR_random、timer觸發訊號
 
 begin
 
@@ -38,23 +39,27 @@ begin
         elsif rising_edge(i_clk) then
             counter <= counter + 1;
             if lfsr(1 downto 0) = "00" then
-                ledClk <= counter(22);  -- SPEED_FAST 快速
+                ledClk <= counter(23);  -- SPEED_FAST 快速
             elsif lfsr(1 downto 0) = "01" then
-                ledClk <= counter(23);  -- SPEED_MEDIUM 中速
+                ledClk <= counter(24);  -- SPEED_MEDIUM 中速
             elsif lfsr(1 downto 0) = "10" then
-                ledClk <= counter(24);  -- SPEED_SLOW 慢速
-            end if;
-            cntClk <= counter(24);
+                ledClk <= counter(25);  -- SPEED_SLOW 慢速
+            else
+                ledClk <= ledClk;
+            end if;            
         end if;
     end process;
+    cntClk <= counter(24);
 
-	--process LFSR_random
+    --process LFSR_random
 	process(cntClk, i_rst)
 	begin
 		if i_rst = '0' then
 			lfsr <= "00000001";
 		elsif rising_edge(cntClk) then
 			lfsr <= lfsr(6 downto 0) & (lfsr(7) xor lfsr(5));
+        else
+            lfsr <= lfsr;
 		end if;
 	end process;
 
@@ -64,10 +69,13 @@ begin
         if i_rst = '0' then
             STATE <= IDLE;
         elsif rising_edge(i_clk) then
+            PRE_STATE <= STATE ;
             case STATE is
                 when IDLE =>
                     if (i_btn1 = '1' and shift_reg = "0100000000") then
                         STATE <= RIGHT_SHIFT;
+                    else
+                        STATE <= IDLE;
                     end if;
                 when RIGHT_SHIFT =>
                     if shift_reg = "0000000001" then
@@ -76,6 +84,8 @@ begin
                         STATE <= LEFT_SHIFT;
                     elsif (i_btn2 = '1' and shift_reg /= "0000000010") then
                         STATE <= FAIL;
+                    else
+                        STATE <= RIGHT_SHIFT;
                     end if;
                 when LEFT_SHIFT =>
                     if shift_reg = "1000000000" then
@@ -84,10 +94,14 @@ begin
                         STATE <= RIGHT_SHIFT;
                     elsif (i_btn1 = '1' and shift_reg /= "0100000000") then
                         STATE <= FAIL;
+                    else
+                        STATE <= LEFT_SHIFT;
                     end if;
                 when FAIL =>
                     if cntTime = "0111" then
                         STATE <= IDLE;
+                    else
+                        STATE <= FAIL;
                     end if;
             end case;
         end if;
@@ -106,8 +120,8 @@ begin
                     shift_reg <= '0' & shift_reg(9 downto 1);
                 when LEFT_SHIFT =>
                     shift_reg <= shift_reg(8 downto 0) & '0';
-                when others =>
-                    null; 
+                when FAIL =>
+                    shift_reg <= shift_reg; 
             end case;
         end if;
     end process;
@@ -156,11 +170,13 @@ begin
                 when RIGHT_SHIFT =>
                     if shift_reg = "0000000001" then
                         cntPoint1 <= cntPoint1 + 1;
-                    elsif (i_btn2 = '1' and shift_reg /= "0000000010") then
+                    elsif (STATE = FAIL and PRE_STATE = RIGHT_SHIFT) then
                         cntPoint1 <= cntPoint1 + 1;
+                    else
+                        cntPoint1 <= cntPoint1;
                     end if;
                 when others =>
-                    null;   
+                    cntPoint1 <= cntPoint1;   
             end case;
         end if;
     end process;
@@ -175,13 +191,16 @@ begin
                 when LEFT_SHIFT =>
                     if shift_reg = "1000000000" then
                         cntPoint2 <= cntPoint2 + 1;
-                    elsif (i_btn1 = '1' and shift_reg /= "0100000000") then
+                    elsif (STATE = FAIL and PRE_STATE = LEFT_SHIFT) then
                         cntPoint2 <= cntPoint2 + 1;
+                    else
+                        cntPoint2 <= cntPoint2;
                     end if;
                 when others =>
-                    null;   
+                    cntPoint2 <= cntPoint2;   
             end case;
         end if;
     end process;
 
 end Behavioral;
+
