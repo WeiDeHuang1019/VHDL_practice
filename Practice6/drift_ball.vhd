@@ -39,17 +39,17 @@ begin
         elsif rising_edge(i_clk) then
             counter <= counter + 1;
             if lfsr(1 downto 0) = "00" then
-                ledClk <= counter(23);  -- SPEED_FAST 快速
+                ledClk <= counter(2);  -- SPEED_FAST 快速
             elsif lfsr(1 downto 0) = "01" then
-                ledClk <= counter(24);  -- SPEED_MEDIUM 中速
+                ledClk <= counter(3);  -- SPEED_MEDIUM 中速
             elsif lfsr(1 downto 0) = "10" then
-                ledClk <= counter(25);  -- SPEED_SLOW 慢速
+                ledClk <= counter(4);  -- SPEED_SLOW 慢速
             else
                 ledClk <= ledClk;
             end if;            
         end if;
     end process;
-    cntClk <= counter(24);
+    cntClk <= counter(3);
 
     --process LFSR_random
 	process(cntClk, i_rst)
@@ -167,10 +167,8 @@ begin
             cntPoint1 <= (others => '0');
         elsif rising_edge(i_clk) then
             case STATE is
-                when RIGHT_SHIFT =>
-                    if shift_reg = "0000000001" then
-                        cntPoint1 <= cntPoint1 + 1;
-                    elsif (STATE = FAIL and PRE_STATE = RIGHT_SHIFT) then
+                when FAIL =>
+                    if (PRE_STATE = RIGHT_SHIFT or PRE_STATE = IDLE) then
                         cntPoint1 <= cntPoint1 + 1;
                     else
                         cntPoint1 <= cntPoint1;
@@ -188,10 +186,8 @@ begin
             cntPoint2 <= (others => '0');
         elsif rising_edge(i_clk) then
             case STATE is
-                when LEFT_SHIFT =>
-                    if shift_reg = "1000000000" then
-                        cntPoint2 <= cntPoint2 + 1;
-                    elsif (STATE = FAIL and PRE_STATE = LEFT_SHIFT) then
+                when FAIL =>
+                    if PRE_STATE = LEFT_SHIFT then
                         cntPoint2 <= cntPoint2 + 1;
                     else
                         cntPoint2 <= cntPoint2;

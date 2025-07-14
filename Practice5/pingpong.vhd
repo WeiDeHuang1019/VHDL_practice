@@ -147,10 +147,8 @@ begin
             cntPoint1 <= (others => '0');
         elsif rising_edge(i_clk) then
             case STATE is
-                when RIGHT_SHIFT =>
-                    if shift_reg = "0000000001" then
-                        cntPoint1 <= cntPoint1 + 1;
-                    elsif (STATE = FAIL and PRE_STATE = RIGHT_SHIFT) then
+                when FAIL =>
+                    if (PRE_STATE = RIGHT_SHIFT or PRE_STATE = IDLE) then
                         cntPoint1 <= cntPoint1 + 1;
                     else
                         cntPoint1 <= cntPoint1;
@@ -168,10 +166,8 @@ begin
             cntPoint2 <= (others => '0');
         elsif rising_edge(i_clk) then
             case STATE is
-                when LEFT_SHIFT =>
-                    if shift_reg = "1000000000" then
-                        cntPoint2 <= cntPoint2 + 1;
-                    elsif (STATE = FAIL and PRE_STATE = LEFT_SHIFT) then
+                when FAIL =>
+                    if PRE_STATE = LEFT_SHIFT then
                         cntPoint2 <= cntPoint2 + 1;
                     else
                         cntPoint2 <= cntPoint2;
