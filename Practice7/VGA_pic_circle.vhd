@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+
 entity VGA_pic is
     port (
         i_clk  : in  std_logic;  -- 25.175 MHz clock
@@ -29,12 +30,18 @@ architecture Behavioral of VGA_pic is
     constant V_BP      : integer := 33;
     constant V_TOTAL   : integer := V_DISPLAY + V_FP + V_SYNC + V_BP;
 
-    signal h_count : integer range 0 to H_TOTAL - 1 ;
-    signal v_count : integer range 0 to V_TOTAL - 1 ;
+    signal h_count : integer range 0 to H_TOTAL - 1 := 0;
+    signal v_count : integer range 0 to V_TOTAL - 1 := 0;
+    signal in_circle : STD_LOGIC := '0';
+    
+    constant C_X : integer := 320;
+    constant C_Y : integer := 240;
+	
+    signal shift_reg   : STD_LOGIC_VECTOR(9 downto 0):= "0100000000"; 
 
 begin
 
-    --process: horizontal_scan
+    -- Horizontal counter
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -48,7 +55,7 @@ begin
         end if;
     end process;
 
-    --process: vertical_scan
+    -- Vertical counter
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -64,7 +71,7 @@ begin
         end if;
     end process;
 
-    --process:hsync_gen
+    -- HSync control (active low)
     process(h_count)
     begin
         if h_count >= H_DISPLAY + H_FP and h_count < H_DISPLAY + H_FP + H_SYNC then
@@ -74,7 +81,7 @@ begin
         end if;
     end process;
 
-    --process: vsync_gen
+    -- VSync control (active low)
     process(v_count)
     begin
         if v_count >= V_DISPLAY + V_FP and v_count < V_DISPLAY + V_FP + V_SYNC then
@@ -83,47 +90,90 @@ begin
             vsync <= '1';
         end if;
     end process;
+	
+	-- in_circle detect
+	process(h_count, v_count)
+		variable dx, dy  : integer;
+		constant RADIUS : integer := 10;
+		constant R2     : integer := RADIUS * RADIUS;
+	begin
+	    
+		in_circle <= '0';
 
-    --process: red_output
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            red <= "000";
-        elsif rising_edge(i_clk) then
-            if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                red <= "111";
-            else
-                red <= "000";
-            end if;
-        end if;
-    end process;
+		dx := h_count - 40;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
 
-    --process: green_output
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            green <= "000";
-        elsif rising_edge(i_clk) then
-            if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                green <= "000";
-            else
-                green <= "000";
-            end if;
-        end if;
-    end process;
+		dx := h_count - 120;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
 
-    --process: blue_output
-    process(i_clk, i_rst)
-    begin
-        if i_rst = '0' then
-            blue <= "000";
-        elsif rising_edge(i_clk) then
-            if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                blue <= "000";
-            else
-                blue <= "000";
-            end if;
-        end if;
-    end process;
+		dx := h_count - 200;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+
+		dx := h_count - 280;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+
+		dx := h_count - 360;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+
+		dx := h_count - 440;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+
+		dx := h_count - 520;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+
+		dx := h_count - 600;
+		dy := v_count - 240;
+		if (dx * dx + dy * dy <= R2) then
+			in_circle <= '1';
+		end if;
+	end process;
+
+	--RGB output
+	process(i_clk)
+	begin
+		if rising_edge(i_clk) then
+			if h_count < H_DISPLAY and v_count < V_DISPLAY then
+				if in_circle = '1' then
+					red   <= "111";
+					green <= "111";
+					blue  <= "111";
+				elsif in_circle = '0' then
+					red   <= "111";
+					green <= "000";
+					blue  <= "000";
+				else
+					red   <= "000";
+					green <= "000";
+					blue  <= "000";
+				end if;
+			else
+				red   <= "000";
+				green <= "000";
+				blue  <= "000";
+			end if;
+		end if;
+	end process;
+
 
 end architecture;
