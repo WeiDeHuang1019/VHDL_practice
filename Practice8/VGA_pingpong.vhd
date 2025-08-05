@@ -10,11 +10,11 @@ entity VGA_pingpong is
         i_btn1  : in  STD_LOGIC;
         i_btn2  : in  STD_LOGIC;
         o_led   : out STD_LOGIC_VECTOR(7 downto 0);
-        hsync  : out std_logic;
-        vsync  : out std_logic;
-        red    : out std_logic_vector(2 downto 0);
-        green  : out std_logic_vector(2 downto 0);
-        blue   : out std_logic_vector(2 downto 0)
+        o_hsync  : out std_logic;
+        o_vsync  : out std_logic;
+        o_red    : out std_logic_vector(2 downto 0);
+        o_green  : out std_logic_vector(2 downto 0);
+        o_blue   : out std_logic_vector(2 downto 0)
     );
 end entity;
 
@@ -127,7 +127,7 @@ begin
                     shift_reg <= '0' & shift_reg(9 downto 1);
                 when LEFT_SHIFT =>
                     shift_reg <= shift_reg(8 downto 0) & '0';
-                when FAIL =>
+                when others =>
                     shift_reg <= shift_reg; 
             end case;
         end if;
@@ -146,7 +146,7 @@ begin
                     led <= shift_reg(8 downto 1);
                 when LEFT_SHIFT =>
                     led <= shift_reg(8 downto 1);
-                when FAIL =>
+                when others =>
                     led(7 downto 4) <= cntPoint1;
                     led(3 downto 0) <= cntPoint2;
             end case;
@@ -236,23 +236,23 @@ begin
         end if;
     end process;
 
-    -- HSync control (active low)
+    -- o_hsync control (active low)
     process(h_count)
     begin
         if h_count >= H_DISPLAY + H_FP and h_count < H_DISPLAY + H_FP + H_SYNC then
-            hsync <= '0';
+            o_hsync <= '0';
         else
-            hsync <= '1';
+            o_hsync <= '1';
         end if;
     end process;
 
-    -- VSync control (active low)
+    -- o_vsync control (active low)
     process(v_count)
     begin
         if v_count >= V_DISPLAY + V_FP and v_count < V_DISPLAY + V_FP + V_SYNC then
-            vsync <= '0';
+            o_vsync <= '0';
         else
-            vsync <= '1';
+            o_vsync <= '1';
         end if;
     end process;
 	
@@ -323,27 +323,31 @@ begin
 	end process;
 
 	--RGB output
-	process(i_clk)
+	process(i_clk, i_rst)
 	begin
-		if rising_edge(i_clk) then
+        if i_rst = '0' then
+            o_red   <= "000";
+            o_green <= "000";
+            o_blue  <= "000";
+		elsif rising_edge(i_clk) then
 			if h_count < H_DISPLAY and v_count < V_DISPLAY then
 				if in_circle = "11" then
-					red   <= "111";
-					green <= "000";
-					blue  <= "000";
+					o_red   <= "111";
+					o_green <= "000";
+					o_blue  <= "000";
 				elsif in_circle = "10" then
-					red   <= "111";
-					green <= "111";
-					blue  <= "111";
+					o_red   <= "111";
+					o_green <= "111";
+					o_blue  <= "111";
 				else
-					red   <= "000";
-					green <= "000";
-					blue  <= "000";
+					o_red   <= "000";
+					o_green <= "000";
+					o_blue  <= "000";
 				end if;
 			else
-				red   <= "000";
-				green <= "000";
-				blue  <= "000";
+				o_red   <= "000";
+				o_green <= "000";
+				o_blue  <= "000";
 			end if;
 		end if;
 	end process;

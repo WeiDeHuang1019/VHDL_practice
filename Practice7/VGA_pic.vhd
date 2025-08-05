@@ -6,11 +6,11 @@ entity VGA_pic is
     port (
         i_clk  : in  std_logic;  -- 25.175 MHz clock
         i_rst  : in  std_logic;
-        hsync  : out std_logic;
-        vsync  : out std_logic;
-        red    : out std_logic_vector(2 downto 0);
-        green  : out std_logic_vector(2 downto 0);
-        blue   : out std_logic_vector(2 downto 0)
+        o_hsync  : out std_logic;
+        o_vsync  : out std_logic;
+        o_red    : out std_logic_vector(2 downto 0);
+        o_green  : out std_logic_vector(2 downto 0);
+        o_blue   : out std_logic_vector(2 downto 0)
     );
 end entity;
 
@@ -64,64 +64,64 @@ begin
         end if;
     end process;
 
-    --process:hsync_gen
+    --process:o_hsync_gen
     process(h_count)
     begin
         if h_count >= H_DISPLAY + H_FP and h_count < H_DISPLAY + H_FP + H_SYNC then
-            hsync <= '0';
+            o_hsync <= '0';
         else
-            hsync <= '1';
+            o_hsync <= '1';
         end if;
     end process;
 
-    --process: vsync_gen
+    --process: o_vsync_gen
     process(v_count)
     begin
         if v_count >= V_DISPLAY + V_FP and v_count < V_DISPLAY + V_FP + V_SYNC then
-            vsync <= '0';
+            o_vsync <= '0';
         else
-            vsync <= '1';
+            o_vsync <= '1';
         end if;
     end process;
 
-    --process: red_output
+    --process: o_red_output
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
-            red <= "000";
+            o_red <= "000";
         elsif rising_edge(i_clk) then
             if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                red <= "111";
+                o_red <= "111";
             else
-                red <= "000";
+                o_red <= "000";
             end if;
         end if;
     end process;
 
-    --process: green_output
+    --process: o_green_output
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
-            green <= "000";
+            o_green <= "000";
         elsif rising_edge(i_clk) then
             if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                green <= "000";
+                o_green <= "000";
             else
-                green <= "000";
+                o_green <= "000";
             end if;
         end if;
     end process;
 
-    --process: blue_output
+    --process: o_blue_output
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
-            blue <= "000";
+            o_blue <= "000";
         elsif rising_edge(i_clk) then
             if h_count < H_DISPLAY and v_count < V_DISPLAY then
-                blue <= "000";
+                o_blue <= "000";
             else
-                blue <= "000";
+                o_blue <= "000";
             end if;
         end if;
     end process;

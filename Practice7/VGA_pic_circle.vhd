@@ -7,11 +7,11 @@ entity VGA_pic is
     port (
         i_clk  : in  std_logic;  -- 25.175 MHz clock
         i_rst  : in  std_logic;
-        hsync  : out std_logic;
-        vsync  : out std_logic;
-        red    : out std_logic_vector(2 downto 0);
-        green  : out std_logic_vector(2 downto 0);
-        blue   : out std_logic_vector(2 downto 0)
+        o_hsync  : out std_logic;
+        o_vsync  : out std_logic;
+        o_red    : out std_logic_vector(2 downto 0);
+        o_green  : out std_logic_vector(2 downto 0);
+        o_blue   : out std_logic_vector(2 downto 0)
     );
 end entity;
 
@@ -33,11 +33,6 @@ architecture Behavioral of VGA_pic is
     signal h_count : integer range 0 to H_TOTAL - 1 := 0;
     signal v_count : integer range 0 to V_TOTAL - 1 := 0;
     signal in_circle : STD_LOGIC := '0';
-    
-    constant C_X : integer := 320;
-    constant C_Y : integer := 240;
-	
-    signal shift_reg   : STD_LOGIC_VECTOR(9 downto 0):= "0100000000"; 
 
 begin
 
@@ -71,23 +66,23 @@ begin
         end if;
     end process;
 
-    -- HSync control (active low)
+    -- o_hsync control (active low)
     process(h_count)
     begin
         if h_count >= H_DISPLAY + H_FP and h_count < H_DISPLAY + H_FP + H_SYNC then
-            hsync <= '0';
+            o_hsync <= '0';
         else
-            hsync <= '1';
+            o_hsync <= '1';
         end if;
     end process;
 
-    -- VSync control (active low)
+    -- o_vsync control (active low)
     process(v_count)
     begin
         if v_count >= V_DISPLAY + V_FP and v_count < V_DISPLAY + V_FP + V_SYNC then
-            vsync <= '0';
+            o_vsync <= '0';
         else
-            vsync <= '1';
+            o_vsync <= '1';
         end if;
     end process;
 	
@@ -155,22 +150,18 @@ begin
 		if rising_edge(i_clk) then
 			if h_count < H_DISPLAY and v_count < V_DISPLAY then
 				if in_circle = '1' then
-					red   <= "111";
-					green <= "111";
-					blue  <= "111";
-				elsif in_circle = '0' then
-					red   <= "111";
-					green <= "000";
-					blue  <= "000";
+					o_red   <= "111";
+					o_green <= "111";
+					o_blue  <= "111";
 				else
-					red   <= "000";
-					green <= "000";
-					blue  <= "000";
+					o_red   <= "111";
+					o_green <= "000";
+					o_blue  <= "000";
 				end if;
 			else
-				red   <= "000";
-				green <= "000";
-				blue  <= "000";
+				o_red   <= "000";
+				o_green <= "000";
+				o_blue  <= "000";
 			end if;
 		end if;
 	end process;
