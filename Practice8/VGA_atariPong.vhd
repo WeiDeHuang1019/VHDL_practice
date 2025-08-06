@@ -75,11 +75,8 @@ architecture Behavioral of VGA_atariPong is
     );
 
 begin
-    ----------------------------------------------------------------
-    -- 2次方除頻器
-    ----------------------------------------------------------------
-    
-	-- 計數器 process
+   
+	-- process: clockDivider
     process(i_clk, i_rst)
     begin
         if i_rst = '0' then
@@ -89,12 +86,9 @@ begin
         end if;
     end process;
     -- 取i_clk除以2^6為slowClk
-    slowClk <= cnt(18);
+    slowClk <= cnt(17);
 
-    ----------------------------------------------------------------
-    -- 水平掃描計數器 (h_count)、低有效重設
-    ----------------------------------------------------------------
-    --pocess: 
+    -- pocess: horizental_scan
     process(i_clk, i_rst)
     begin
 		if i_rst = '0' then                            -- 重設水平計數
@@ -108,9 +102,7 @@ begin
         end if;
     end process;
 
-    ----------------------------------------------------------------
-    -- 垂直掃描計數器 (v_count)、低有效重設
-    ----------------------------------------------------------------
+    -- process: vertical_scan
     process(i_clk, i_rst)
     begin
 		if i_rst = '0' then                            -- 重設垂直計數
@@ -126,16 +118,51 @@ begin
         end if;
     end process;
 
-    -- 同步信號產生：H_SYNC、V_SYNC（低電位有效）
-    o_hsync <= '0' when (h_count >= H_DISPLAY + H_FP and h_count < H_DISPLAY + H_FP + H_SYNC) else '1';
-    o_vsync <= '0' when (v_count >= V_DISPLAY + V_FP and v_count < V_DISPLAY + V_FP + V_SYNC) else '1';
+    -- process: hsync_gen
+	process(i_clk, i_rst)
+	begin
+		if i_rst = '0' then
+			o_hsync <= '1';  -- reset 時維持非同步閒置態（高）
+		elsif rising_edge(i_clk) then
+			if (h_count >= H_DISPLAY + H_FP) and
+			   (h_count <  H_DISPLAY + H_FP + H_SYNC) then
+				o_hsync <= '0';
+			else
+				o_hsync <= '1';
+			end if;
+		end if;
+	end process;
 
-    -- 只有在可見區域內才顯示畫面
-    video_on <= '1' when (h_count < H_DISPLAY and v_count < V_DISPLAY) else '0';
+    -- process: vsync_gen
+	process(i_clk, i_rst)
+	begin
+		if i_rst = '0' then
+			o_vsync <= '1';  -- reset 時維持非同步閒置態（高）
+		elsif rising_edge(i_clk) then
+			if (v_count >= V_DISPLAY + V_FP) and
+			   (v_count <  V_DISPLAY + V_FP + V_SYNC) then
+				o_vsync <= '0';
+			else
+				o_vsync <= '1';
+			end if;
+		end if;
+	end process;
 
-	------------------------------------------------------------------------
-	-- ball_x 更新
-	------------------------------------------------------------------------
+    -- process: visibleArea
+	process(i_clk, i_rst)
+	begin
+		if i_rst = '0' then
+			video_on <= '0';  -- reset 時視訊關閉
+		elsif rising_edge(i_clk) then
+			if (h_count < H_DISPLAY) and (v_count < V_DISPLAY) then
+				video_on <= '1';
+			else
+				video_on <= '0';
+			end if;
+		end if;
+	end process;
+
+    -- process: ball_position_x
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -167,9 +194,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- ball_y 更新
-	------------------------------------------------------------------------
+    -- process: ball_position_y
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -190,9 +215,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- ball_dx 更新（水平方向速度）
-	------------------------------------------------------------------------
+    -- process: ball_direction_x
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -215,9 +238,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- ball_dy 更新（垂直方向速度）
-	------------------------------------------------------------------------
+    -- process: ball_direction_y
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -232,9 +253,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- score1 更新（玩家1 得分）
-	------------------------------------------------------------------------
+    -- process: scoreCount1
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -250,9 +269,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- score2 更新（玩家2 得分）
-	------------------------------------------------------------------------
+    -- process: scoreCount2
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -268,9 +285,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- game_over 更新（滿分結束判斷）
-	------------------------------------------------------------------------
+    -- process: game_over
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -285,9 +300,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- pad1_y 更新（玩家1 板子移動）
-	------------------------------------------------------------------------
+    -- process: pad1_position
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -303,9 +316,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- pad2_y 更新（AI 板子追球）
-	------------------------------------------------------------------------
+    -- process: pad2_position
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -321,9 +332,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- o_red 顏色輸出
-	------------------------------------------------------------------------
+    -- process: red_output
 	process(i_clk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -390,9 +399,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- o_green 顏色輸出
-	------------------------------------------------------------------------
+    -- process: green_output
 	process(i_clk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -459,9 +466,7 @@ begin
 		end if;
 	end process;
 
-	------------------------------------------------------------------------
-	-- o_blue 顏色輸出
-	------------------------------------------------------------------------
+    -- process: blue_output
 	process(i_clk, i_rst)
 	begin
 		if i_rst = '0' then
@@ -518,7 +523,7 @@ begin
 				elsif seg7_lut(score2)(0) = '1' and h_count >= 390 and h_count < 430 and v_count >=  80 and v_count <  85 then
 					o_blue <= "000";
 
-				-- 其他背景
+				-- 背景
 				else
 					o_blue <= "000";
 				end if;
