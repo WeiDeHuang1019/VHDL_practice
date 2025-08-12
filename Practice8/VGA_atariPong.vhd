@@ -46,13 +46,14 @@ architecture Behavioral of VGA_atariPong is
 
     -- 遊戲狀態變數
     signal ball_x, ball_y : integer := 320;   -- 球的當前座標 (中心)
-    signal ball_dx, ball_dy : integer := 2;   -- 球的水平與垂直速度
+    signal ball_dx, ball_dy : integer := 1;   -- 球的水平與垂直速度
     signal pad1_y : integer := 210;           -- 左側玩家板子 Y 座標
     signal pad2_y : integer := 210;           -- 右側 AI 板子 Y 座標
 
     -- 時脈分頻與遊戲更新節奏
 	signal cnt : std_logic_vector(25 downto 0);    -- 計數器
-	signal slowClk : std_logic :='0';             
+	signal slowClk : std_logic :='0'; 
+	signal aiPlayerClk : std_logic :='0'; 
 
     -- 分數與遊戲結束旗標
     signal score1    : integer range 0 to 9 := 0;  -- 玩家1 分數 (0~9)
@@ -86,7 +87,8 @@ begin
         end if;
     end process;
     -- 取i_clk除以2^6為slowClk
-    slowClk <= cnt(17);
+    slowClk <= cnt(16);
+	aiPlayerClk <= cnt(17);
 
     -- pocess: horizental_scan
     process(i_clk, i_rst)
@@ -173,18 +175,18 @@ begin
 				if (ball_y <= 0) or (ball_y >= V_DISPLAY - ball_size) then
 					ball_x <= ball_x;
 				-- 左側板子碰撞
-				elsif (ball_x <= pad_width) and
+				elsif (ball_x = pad_width) and
 					  (ball_y >= pad1_y - ball_size) and (ball_y <= pad1_y + pad_hight) then
 					ball_x <= ball_x - ball_dx;
 				-- 右側板子碰撞
-				elsif (ball_x >= H_DISPLAY - (pad_width + ball_size)) and
+				elsif (ball_x = H_DISPLAY - (pad_width + ball_size)) and
 					  (ball_y >= pad2_y - ball_size) and (ball_y <= pad2_y + pad_hight) then
 					ball_x <= ball_x - ball_dx;
-				-- 左側出界 → 重置 X
-				elsif (ball_x <= 0) then
+				-- 撞擊左側邊界: 左側出界 → 重置 X
+				elsif (ball_x = 0) then
 					ball_x <= H_DISPLAY/2;
-				-- 右側出界 → 重置 X
-				elsif (ball_x >= H_DISPLAY - ball_size) then
+				-- 撞擊右側邊界: 右側出界 → 重置 X
+				elsif (ball_x = H_DISPLAY - ball_size) then
 					ball_x <= H_DISPLAY/2;
 				-- 正常移動
 				else
@@ -204,6 +206,10 @@ begin
 				-- 垂直邊界反彈
 				if (ball_y <= 0) or (ball_y >= V_DISPLAY - ball_size) then
 					ball_y <= ball_y - ball_dy;
+				-- 撞擊左側板上下緣
+				elsif (ball_x < pad_width) and 
+					  (ball_y >= (pad1_y - ball_size - 1)) and (ball_y <= (pad1_y + pad_hight + 1)) then
+					ball_y <= ball_y - (ball_dy*3);
 				-- 左/右出界時重置 Y
 				elsif (ball_x <= 0) or (ball_x >= H_DISPLAY - ball_size) then
 					ball_y <= V_DISPLAY/2;
@@ -219,15 +225,15 @@ begin
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
-			ball_dx <= 3;
+			ball_dx <= 1;
 		elsif rising_edge(slowClk) then
 			if game_over = '0' then
 				-- 左側板子碰撞
-				if (ball_x <= pad_width) and
+				if (ball_x = pad_width) and
 				   (ball_y >= pad1_y - ball_size) and (ball_y <= pad1_y + pad_hight) then
 					ball_dx <= -ball_dx;
 				-- 右側板子碰撞
-				elsif (ball_x >= H_DISPLAY - (pad_width + ball_size)) and
+				elsif (ball_x = H_DISPLAY - (pad_width + ball_size)) and
 					  (ball_y >= pad2_y - ball_size) and (ball_y <= pad2_y + pad_hight) then
 					ball_dx <= -ball_dx;
 				-- 左/右出界也反向
@@ -242,11 +248,15 @@ begin
 	process(slowClk, i_rst)
 	begin
 		if i_rst = '0' then
-			ball_dy <= 3;
+			ball_dy <= 1;
 		elsif rising_edge(slowClk) then
 			if game_over = '0' then
 				-- 垂直邊界反彈
 				if (ball_y <= 0) or (ball_y >= V_DISPLAY - ball_size) then
+					ball_dy <= -ball_dy;
+				-- 撞擊左側板上下緣
+				elsif (ball_x < pad_width) and 
+					  (ball_y >= (pad1_y - ball_size - 1)) and (ball_y <= (pad1_y + pad_hight +1 )) then
 					ball_dy <= -ball_dy;
 				end if;
 			end if;
@@ -308,25 +318,25 @@ begin
 		elsif rising_edge(slowClk) then
 			if game_over = '0' then
 				if (i_btnUp = '1') and (pad1_y > 0) then
-					pad1_y <= pad1_y - 4;
+					pad1_y <= pad1_y - 1;
 				elsif (i_btnDn = '1') and (pad1_y < V_DISPLAY - pad_hight) then
-					pad1_y <= pad1_y + 4;
+					pad1_y <= pad1_y + 1;
 				end if;
 			end if;
 		end if;
 	end process;
 
     -- process: pad2_position
-	process(slowClk, i_rst)
+	process(aiPlayerClk, i_rst)
 	begin
 		if i_rst = '0' then
 			pad2_y <= (V_DISPLAY/2) - (pad_hight/2);
-		elsif rising_edge(slowClk) then
-			if game_over = '0' then
+		elsif rising_edge(aiPlayerClk) then
+			if (game_over = '0') and (ball_dx > 0) then
 				if (pad2_y + pad_hight/2 < ball_y) and (pad2_y + pad_hight < V_DISPLAY) then
-					pad2_y <= pad2_y + 2;
+					pad2_y <= pad2_y + 1;
 				elsif (pad2_y + pad_hight/2 > ball_y) and (pad2_y > 0) then
-					pad2_y <= pad2_y - 2;
+					pad2_y <= pad2_y - 1;
 				end if;
 			end if;
 		end if;
