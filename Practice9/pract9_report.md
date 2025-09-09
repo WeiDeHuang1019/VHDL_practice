@@ -41,28 +41,25 @@
 ---
 
 ## 本週報告題目：第九題 
-- **VGA 規格：** 640 x 480 @ 60Hz
-  - **16-bit LED乒乓球遊戲**
-  - **兩張FPGA版串接**
+- **16-bit LED乒乓球遊戲**
+- **兩張FPGA版串接**
 
 
 ---
 
 ###  Breakdown
 
-### 分為四大類別: clock_divider, RX, TX, synchronizer, game  
-<img width="1975" height="740" alt="image" src="https://github.com/user-attachments/assets/427b8038-e5ab-4cb7-a6a9-1bb2860244d1" />
-
-
----
-#### **RX**
-<img width="1985" height="740" alt="image" src="https://github.com/user-attachments/assets/3974331f-bcc9-4b11-a96d-4cca2d6d4faa" />
-
+### 分為四大類別: RX, TX, synchronizer, game  
+<img width="1975" height="740" alt="image" src="https://github.com/user-attachments/assets/35bd067e-6506-4aa6-a431-8e7f12c6ada1" />
 
 ---
 #### **TX**
 <img width="1988" height="740" alt="image" src="https://github.com/user-attachments/assets/fa7bab7b-06a8-48a1-834a-1a2495509b8e" />
 
+
+---
+#### **RX**
+<img width="1985" height="740" alt="image" src="https://github.com/user-attachments/assets/3974331f-bcc9-4b11-a96d-4cca2d6d4faa" />
 
 
 ---
@@ -79,16 +76,26 @@
 
 
 ## AOV   
-- **模擬情境：** 向右發球→右方回擊→左方回擊→右方擊球失敗
-<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/51a4337b-f4dd-43d2-a2b8-3d204f4ff6cb" />
-
+- **模擬情境：** A發球→B回擊→A擊球失敗→顯示分數
+<img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/51cb880d-a2cf-43ab-9db5-69e477f67afb" />
 
 
 ---
 
 ## MSC 
 
-- **模擬情境：** 完整掃描一個幀
+- **時序圖(一): 訊號傳遞情形**
+<img width="1436" height="844" alt="image" src="https://github.com/user-attachments/assets/c878aea4-d0f6-4342-a3f3-bf20d0eb067e" />
+
+- **時序圖(二): TX運作情形**
+<img width="1456" height="877" alt="image" src="https://github.com/user-attachments/assets/657d667b-3e66-4967-99ab-37c9b7835539" />
+
+- **時序圖(三): RX運作情形**
+<img width="1086" height="866" alt="image" src="https://github.com/user-attachments/assets/149b8c12-52e5-496f-9248-c5667e85783a" />
+
+- **時序圖(四): 整體遊戲運作情形**
+<img width="1404" height="829" alt="image" src="https://github.com/user-attachments/assets/cfb13e9f-a342-4018-b20b-11168f3cc0f3" />
+
 
 
 ---
